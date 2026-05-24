@@ -37,13 +37,15 @@ trap 'notify "Backup Failed" "\`$FILE\` failed at $(date -u)" 4437377' EXIT
 START=$(date +%s)
 
 echo "Dumping database..."
-pg_dump "$DATABASE_URL" --no-owner --no-acl | gzip > "/tmp/$FILE"
+pg_dump "$DATABASE_URL" --no-owner --no-acl | pigz > "/tmp/$FILE"
 
 SIZE=$(du -h "/tmp/$FILE" | cut -f1)
 
 echo "Uploading to bucket..."
 aws s3 cp "/tmp/$FILE" "s3://$AWS_S3_BUCKET_NAME/backups/$FILE" \
   --endpoint-url "$AWS_ENDPOINT_URL"
+
+rm "/tmp/$FILE"
 
 END=$(date +%s)
 ELAPSED=$((END - START))
